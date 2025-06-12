@@ -9,9 +9,9 @@ from telegram.ext import (
 )
 
 # === Настройки ===
-BOT_TOKEN = "YOUR_BOT_TOKEN"  # <-- вставь сюда токен бота
+BOT_TOKEN = "7652934695:AAFKpvBEbuBxHapijiACgaoLiR2fbRMCGM8"  # <-- вставь сюда токен бота
 ACCESS_PASSWORD = "нет друзей на закате"  # пароль для вступления
-CHAT_INVITE_LINK = "https://t.me/YOUR_CHAT_LINK"  # <-- вставь ссылку-приглашение в чат
+CHAT_INVITE_LINK = "https://t.me/thelonelywolfchat"  # <-- вставь ссылку-приглашение в чат
 
 # Нецензурные слова и предупреждения
 BAD_WORDS = {
