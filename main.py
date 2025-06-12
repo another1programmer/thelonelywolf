@@ -35,7 +35,7 @@ logging.basicConfig(
 )
 
 # <-- ВАЖНО: ВСТАВЬ СВОЙ ЧИСЛОВОЙ user_id ЗДЕСЬ:
-ADMIN_ID = 123456789  # <-- замени 123456789 на свой реальный user_id
+ADMIN_ID = 452362541  # <-- замени 123456789 на свой реальный user_id
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
