@@ -1,31 +1,56 @@
-
-from telegram import (
-    Update, InlineKeyboardButton, InlineKeyboardMarkup, ChatMemberUpdated
-)
+import logging
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, MessageHandler, ChatMemberHandler,
-    ContextTypes, filters
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ContextTypes,
 )
 
-# === НАСТРОЙКИ ===
-TOKEN = '7652934695:AAFKpvBEbuBxHapijiACgaoLiR2fbRMCGM8'
-CHAT_INVITE_LINK = 'https://t.me/thelonelywolfchat'
-ACCESS_PASSWORD = 'нет друзей на закате'
+# === Настройки ===
+BOT_TOKEN = "YOUR_BOT_TOKEN"  # <-- вставь сюда токен бота
+ACCESS_PASSWORD = "нет друзей на закате"  # пароль для вступления
+CHAT_INVITE_LINK = "https://t.me/YOUR_CHAT_LINK"  # <-- вставь ссылку-приглашение в чат
 
-# Триггеры нецензурной лексики (добавляй свои)
+# Нецензурные слова и предупреждения
 BAD_WORDS = {
-    "жопа": "🛑 У нас так не выражаются.",
-    "блять": "🤐 Аккуратнее, пожалуйста.",
-    "нахуй": "⚠️ Без агрессии, давай уважительно.",
-    "сука": "🚫 Воздержись от подобных слов.",
-    "ебать": "👀 Слишком грубо для киноклуба.",
+    "жопа": "💬 У нас так не принято выражаться.",
+    "блять": "💬 Аккуратнее, у нас культурное сообщество.",
+    "сука": "💬 Пожалуйста, без грубостей.",
+    "хуй": "💬 Просим воздержаться от нецензурной лексики.",
+    "ебать": "💬 Без матов, даже если фильм плохой.",
+    # добавь свои слова и ответы
 }
+
+# Популярные автоответы (можно расширить)
+FAQ = {
+    "что смотрим": "🎬 Сегодня смотрим «Олдбой» (2003). Начало в 20:00.",
+    "где проходит просмотр": "📍 Онлайн в нашем закрытом чате.",
+    "кто организатор": "👤 Организатор — Одинокий волк.",
+    # добавь другие варианты
+}
+
+# Включаем логирование
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
+
+# === Обработка команды /start ===
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🌒 Мы живем в сумрачном мире.\n\n"
+        "Добро пожаловать в бот сообщества «Одинокий волк». "
+        "Чтобы получить доступ к нашему закрытому кинозалу, пожалуйста, введите пароль:"
+    )
 
 # === Проверка пароля ===
 async def check_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message or not update.message.text:
+        return
+
     message_text = update.message.text.strip().lower()
-    
-    # Если это пароль — даём кнопку
+
     if message_text == ACCESS_PASSWORD:
         keyboard = [[InlineKeyboardButton("👥 Вступить в чат", url=CHAT_INVITE_LINK)]]
         reply_markup = InlineKeyboardMarkup(keyboard)
@@ -33,44 +58,21 @@ async def check_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "✅ Пароль принят.\n\nНажми на кнопку, чтобы вступить в наш уютный кинозал:",
             reply_markup=reply_markup
         )
-    # Если это плохое слово
-    elif message_text in BAD_WORDS:
-        await update.message.reply_text(BAD_WORDS[message_text])
+    elif message_text in FAQ:
+        await update.message.reply_text(FAQ[message_text])
     else:
-        await update.message.reply_text("❌ Неверный пароль. Попробуй ещё раз.")
+        # Проверка на мат
+        for bad_word in BAD_WORDS:
+            if bad_word in message_text:
+                await update.message.reply_text(BAD_WORDS[bad_word])
+                break
 
-# === Приветствие новых участников в чате ===
-async def new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    member = update.chat_member
-    if member.new_chat_member.status == "member":
-        await context.bot.send_message(
-            chat_id=update.chat_member.chat.id,
-            text=(
-                "👋 Добро пожаловать в чат *Одинокий волк*!\n\n"
-                "📜 *Наши правила:*\n"
-                "1️⃣ Уважай других участников\n"
-                "2️⃣ Без мата и оскорблений\n"
-                "3️⃣ Не спамь, не флууди\n"
-                "4️⃣ Делясь мнением — будь душевным\n"
-                "5️⃣ За нарушения — предупреждение или удаление\n\n"
-                "🎬 Приятного просмотра и общения!"
-            ),
-            parse_mode='Markdown'
-        )
+# === Старт приложения ===
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-# === Запуск бота ===
-def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-
-    # Проверка текста (пароль + маты)
+    app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_password))
 
-    # Обработка вступления в чат
-    app.add_handler(ChatMemberHandler(new_member, ChatMemberHandler.CHAT_MEMBER))
-
-    print("🤖 Бот запущен и ждёт пользователей...")
+    print("✅ Бот запущен")
     app.run_polling()
-
-if __name__ == "__main__":
-    main()
-	
