@@ -1,3 +1,4 @@
+
 import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
@@ -8,52 +9,54 @@ from telegram.ext import (
     ContextTypes,
 )
 
-user_ids = set ()
+user_ids = set()
 
 # === Настройки ===
-BOT_TOKEN = "7652934695:AAFKpvBEbuBxHapijiACgaoLiR2fbRMCGM8"  # <-- вставь сюда токен бота
-ACCESS_PASSWORD = "нет друзей на закате"  # пароль для вступления
-CHAT_INVITE_LINK = "https://t.me/thelonelywolfchat"  # <-- вставь ссылку-приглашение в чат
+BOT_TOKEN = "7652934695:AAFKpvBEbuBxHapijiACgaoLiR2fbRMCGM8"
+ACCESS_PASSWORD = "нет друзей на закате"
+CHAT_INVITE_LINK = "https://t.me/thelonelywolfchat"
 
-# Нецензурные слова и предупреждения
 BAD_WORDS = {
     "жопа": "💬 У нас так не принято выражаться.",
     "блять": "💬 Аккуратнее, у нас культурное сообщество.",
     "сука": "💬 Пожалуйста, без грубостей.",
     "хуй": "💬 Просим воздержаться от нецензурной лексики.",
     "ебать": "💬 Без матов, даже если фильм плохой.",
-    # добавь свои слова и ответы
 }
 
-# Популярные автоответы (можно расширить)
 FAQ = {
-    "что смотрим": "🎬 Сегодня смотрим «Олдбой» (2003). Начало в 20:00.",
-    "где проходит просмотр": "📍 Онлайн в нашем закрытом чате.",
+    "что смотрим": "🎬 ну «что-нибудь посмотрим,
+    "где проходит просмотр": где где, дома у меня,
     "кто организатор": "👤 Организатор — Одинокий волк.",
-    # добавь другие варианты
 }
 
-# Включаем логирование
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-# === Обработка команды /start ===
+# <-- ВАЖНО: ВСТАВЬ СВОЙ ЧИСЛОВОЙ user_id ЗДЕСЬ:
+ADMIN_ID = 123456789  # <-- замени 123456789 на свой реальный user_id
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_ids.add(update.effective_user.id)
-    
+    user_id = update.effective_user.id
+    user_ids.add(user_id)
     await update.message.reply_text(
-        "Добро пожаловать в бот сообщества «Одинокий волк».\n\n"
-        "Чтобы получить доступ к нашему дискашн чат, пожалуйста, завершите фразу:\n"
-           "🌒 Мы живем в сумрачном мире"
+        f"Добро пожаловать в бот сообщества «Одинокий волк».\n\n"
+        f"Чтобы получить доступ к нашему дискашн чат, пожалуйста, завершите фразу:\n"
+        f"🌒 Мы живем в сумрачном мире\n\n"
+        f"Ваш user_id: {user_id}  (Это поможет тебе узнать свой ID)"
     )
 
-# === Проверка пароля ===
 async def check_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
         return
 
     message_text = update.message.text.strip().lower()
+
+    # Если написали просто "рассылка" без слеша
+    if message_text == "рассылка":
+        await update.message.reply_text("❗ Для рассылки сообщений используйте команду /рассылка с текстом после неё.")
+        return
 
     if message_text == ACCESS_PASSWORD:
         keyboard = [[InlineKeyboardButton("👥 Вступить в чат", url=CHAT_INVITE_LINK)]]
@@ -65,15 +68,16 @@ async def check_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif message_text in FAQ:
         await update.message.reply_text(FAQ[message_text])
     else:
-        # Проверка на мат
         for bad_word in BAD_WORDS:
             if bad_word in message_text:
                 await update.message.reply_text(BAD_WORDS[bad_word])
                 break
 
-
-# === Ручная рассылка по команде /рассылка ===
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != ADMIN_ID:
+        await update.message.reply_text("❌ У вас нет прав на использование этой команды.")
+        return
+
     if not context.args:
         await update.message.reply_text("❗ Напиши текст после команды /рассылка")
         return
@@ -88,8 +92,7 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
             print(f"Не удалось отправить {user_id}: {e}")
 
     await update.message.reply_text(f"✅ Сообщение отправлено {count} пользователям.")
-    
-# === Старт приложения ===
+
 if __name__ == "__main__":
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
