@@ -79,7 +79,7 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if not context.args:
-        await update.message.reply_text("❗ Напиши текст после команды /рассылка")
+        await update.message.reply_text("❗ Напиши текст после команды /broadcast")
         return
 
     message = " ".join(context.args)
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("рассылка", broadcast))
+    app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, check_password))
 
     print("✅ Бот запущен")
